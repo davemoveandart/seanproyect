@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+import serial
+import time
+from pythonosc import udp_client
+
+# Configurar el puerto serial
+ser = serial.Serial('/dev/ttyUSB0', 9600)  # Cambia esto por el puerto serial correcto
+time.sleep(2)  # Esperar a que la conexión serial se inicialice
+
+# Configurar el cliente OSC
+osc_client = udp_client.SimpleUDPClient('192.168.1.84', 4560)  # Dirección y puerto de Sonic Pi
+
+def send_osc_message(sensor, value):
+    osc_client.send_message('/sensor{}'.format(sensor), value)
+    print(f"Enviado /sensor{sensor} con valor {value}")
+
+while True:
+    if ser.in_waiting > 0:
+        line = ser.readline().decode('utf-8').strip()
+        try:
+            distances = list(map(int, line.split(',')))
+            if len(distances) == 3:
+                # Imprimir los valores recibidos
+                print("Distancia 1:", distances[0])
+                print("Distancia 2:", distances[1])
+                print("Distancia 3:", distances[2])
+                
+                # Enviar mensajes OSC
+                send_osc_message(1, distances[0])
+                send_osc_message(2, distances[1])
+                send_osc_message(3, distances[2])
+        except ValueError:
+            print("Error al convertir a entero: {}".format(line))
+    time.sleep(.5)
