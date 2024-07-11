@@ -1,0 +1,18 @@
+
+# Carpeta de samples
+sample_folder = "/home/oem/Desktop/Audio/trabajo2"
+
+# Lista de archivos en la carpeta
+samples = Dir["#{sample_folder}/*.wav"]
+
+# Función para reproducir un sample aleatorio
+define :play_random_sample do
+  sample_path = samples.choose
+  sample sample_path, amp: 2
+  sleep sample_duration(sample_path) + 1
+end
+
+# Bucle para reproducir samples aleatoriamente
+live_loop :random_samples do
+  play_random_sample
+end
