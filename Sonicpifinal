@@ -1,0 +1,95 @@
+# Acordes 
+eb7_plus = (chord :eb, :major7)
+g7 = (chord :g, :dom7)
+cm = (chord :c, :minor)
+ab = (chord :ab, :major)
+
+# Variables de los sensores
+distancia1 = 0
+distancia2 = 0
+distancia3 = 0
+
+# Duración total de la propuesta 
+end_time = Time.now + 6 * 60
+
+# Configuración para recibir mensajes OSC en Sonic Pi
+use_osc "192.168.1.84", 4560  # Dirección y puerto de Sonic Pi
+
+# Definir los manejadores para los mensajes OSC
+live_loop :osc_listener1 do
+  osc = sync "/osc*/sensor1"
+  distancia1 = osc[0]
+end
+
+live_loop :osc_listener2 do
+  osc = sync "/osc*/sensor2"
+  distancia2 = osc[0]
+end
+
+live_loop :osc_listener3 do
+  osc = sync "/osc*/sensor3"
+  distancia3 = osc[0]
+end
+
+# Configuración de efectos envolventes
+define :play_chord_with_fx do |chord, vol|
+  with_fx :reverb, mix: 0.6 do
+    with_fx :slicer, phase: 0.25 do
+      play chord, sustain: 2, release: 1, amp: vol
+      sleep 2
+    end
+  end
+end
+
+# Progresión de acordes con efectos
+live_loop :chord_progression do
+  if Time.now < end_time
+    vol = [[(distancia3 - 20) / 25.0, 0].max, 1].min  # Mapeo de 20-45 a 0-1 para el volumen, asegurando que esté en el rango 0-1
+    play_chord_with_fx eb7_plus, vol
+    play_chord_with_fx g7, vol
+    play_chord_with_fx cm, vol
+    play_chord_with_fx ab, vol
+  else
+    stop
+  end
+end
+
+# Reproducción de audios basados en los valores del sensor 1
+live_loop :audio_from_sensor1 do
+  if Time.now < end_time
+    case distancia1
+    when 20..35
+      sample "/home/oem/Desktop/Audio/trabajo/detalles2.wav"
+    when 36..55
+      sample "/home/oem/Desktop/Audio/trabajo/diferencias2.wav"
+    when 56..76
+      sample "/home/oem/Desktop/Audio/trabajo/nono2.wav"
+    end
+  else
+    stop
+  end
+  sleep 1
+end
+
+# Reproducción de audios basados en los valores del sensor 2
+live_loop :audio_from_sensor2 do
+  if Time.now < end_time
+    case distancia2
+    when 20..28
+      sample "/home/oem/Desktop/Audio/trabajo2/Avionguerra.wav"
+    when 29..35
+      sample "/home/oem/Desktop/Audio/trabajo2/Avionguerra2.wav"
+    when 36..45
+      sample "/home/oem/Desktop/Audio/trabajo2/Avionguerra3.wav"
+    end
+  else
+    stop
+  end
+  sleep 1
+end
+
+# Apagar a los 6 minutos
+live_loop :clock do
+  sleep 6 * 60
+  stop
+end
