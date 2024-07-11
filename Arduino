@@ -1,0 +1,48 @@
+const int sensorPin1 = A0;
+const int sensorPin2 = A3;
+const int sensorPin3 = A5;
+
+void setup() {
+    Serial.begin(9600);
+    Serial.println("Iniciando...");
+}
+
+void loop() {
+    int rawValue1 = analogRead(sensorPin1);
+    int rawValue2 = analogRead(sensorPin2);
+    int rawValue3 = analogRead(sensorPin3);
+
+    float voltage1 = rawValue1 * (5.0 / 1023.0);
+    float voltage2 = rawValue2 * (5.0 / 1023.0);
+    float voltage3 = rawValue3 * (5.0 / 1023.0);
+
+    int distancia1 = getDistance(voltage1);
+    int distancia2 = getDistance(voltage2);
+    int distancia3 = getDistance(voltage3);
+
+    Serial.print(distancia1);
+    Serial.print(",");
+    Serial.print(distancia2);
+    Serial.print(",");
+    Serial.println(distancia3);
+
+    delay(50);
+}
+
+int getDistance(float voltage) {
+    const int numReadings = 13;
+    float voltageTable[numReadings] = { 0.4, 0.5, 0.55, 0.6, 0.7, 0.8, 1.0, 1.2, 1.5, 2.0, 2.5, 2.8, 3.0 };
+    int distanceTable[numReadings] = { 150, 120, 110, 100, 80, 60, 50, 40, 30, 25, 22, 20, 15 };
+
+    if (voltage <= voltageTable[0]) return distanceTable[0];
+    if (voltage >= voltageTable[numReadings - 1]) return distanceTable[numReadings - 1];
+
+    for (int i = 0; i < numReadings - 1; i++) {
+        if (voltage >= voltageTable[i] && voltage <= voltageTable[i + 1]) {
+            float slope = (distanceTable[i + 1] - distanceTable[i]) / (voltageTable[i + 1] - voltageTable[i]);
+            return distanceTable[i] + slope * (voltage - voltageTable[i]);
+        }
+    }
+
+    return -1;
+}
