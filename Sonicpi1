@@ -1,0 +1,22 @@
+# Acordes
+eb7_plus = (chord :eb, :major7)
+g7 = (chord :g, :dom7)
+cm = (chord :c, :minor)
+ab = (chord :ab, :major)
+
+# Configuración de efectos 
+define :play_chord_with_fx do |chord|
+  with_fx :reverb, mix: 0.6 do
+    with_fx :slicer, phase: 0.25 do
+      play chord, sustain: 2, release: 1
+      sleep 2
+    end
+  end
+end
+
+live_loop :chord_progression do
+  play_chord_with_fx eb7_plus
+  play_chord_with_fx g7
+  play_chord_with_fx cm
+  play_chord_with_fx ab
+end
